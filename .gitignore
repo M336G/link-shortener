@@ -1,0 +1,5 @@
+node_modules
+data/database.db
+data/database.db-*
+.env
+bun.lock
