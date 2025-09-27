@@ -67,7 +67,11 @@ const server = Bun.serve({
                     while (!id || Database.getRedirectFromID(id) || Database.checkIfIDIsBlacklisted(id))
                         id = generateRandomString();
 
-                    Database.addRedirect(id, url, getClientIP(req) ?? "unknown");
+                    const ip = getClientIP(req) ?? "unknown";
+
+                    console.info(`Created a new redirect: ${id} -> ${url} (from ${ip})`);
+
+                    Database.addRedirect(id, url, ip);
                     return new Response(BASE_URL + id, { headers: Headers.redirects });
                 }
             }
@@ -129,9 +133,13 @@ const server = Bun.serve({
 
                         if (redirect.enabled) {
                             Database.disableRedirect(value);
+                            console.info(`Disabled a redirect: ${redirect.id} -> ${redirect.url} (from ${getClientIP(req) ?? "unknown"})`);
+
                             return new Response("Redirect disabled successfully!", { status: 200, headers: Headers.blacklist });
                         } else {
                             Database.enableRedirect(value);
+                            console.info(`Enabled a redirect: ${redirect.id} -> ${redirect.url} (from ${getClientIP(req) ?? "unknown"})`);
+
                             return new Response("Redirect enabled successfully!", { status: 200, headers: Headers.blacklist });
                         }
                     case "domains":
@@ -142,17 +150,25 @@ const server = Bun.serve({
 
                         if (Database.checkIfDomainIsBlacklisted(value)) {
                             Database.removeBlacklistedDomain(value);
+                            console.info(`Removed a domain from the blacklist: ${value} (from ${getClientIP(req) ?? "unknown"})`);
+
                             return new Response("Domain removed from the blacklist successfully!", { status: 200, headers: Headers.blacklist });
                         } else {
                             Database.addBlacklistedDomain(value);
+                            console.info(`Added a domain to the blacklist: ${value} (from ${getClientIP(req) ?? "unknown"})`);
+
                             return new Response("Domain added to the blacklist successfully!", { status: 200, headers: Headers.blacklist });
                         }
                     case "words":
                         if (Database.checkIfIDIsBlacklisted(value)) {
                             Database.removeBlacklistedWord(value);
+                            console.info(`Removed a word from the blacklist: ${value} (from ${getClientIP(req) ?? "unknown"})`);
+
                             return new Response("Word removed from the blacklist successfully!", { status: 200, headers: Headers.blacklist });
                         } else {
                             Database.addBlacklistedWord(value);
+                            console.info(`Added a word to the blacklist: ${value} (from ${getClientIP(req) ?? "unknown"})`);
+                            
                             return new Response("Word added to the blacklist successfully!", { status: 200, headers: Headers.blacklist });
                         }
                     default:
@@ -208,6 +224,8 @@ const server = Bun.serve({
 
                 if (redirect) { // If the redirect exists, delete it
                     deleteRedirect(id);
+                    console.info(`Deleted a redirect: ${redirect.id} -> ${redirect.url} (from ${getClientIP(req) ?? "unknown"})`);
+
                     return new Response("Redirect deleted successfully!", { status: 200, headers: { ...Headers.redirects, "Access-Control-Allow-Headers": "Authorization" } });
                 } else { // If the ID doesn't exist
                     return new Response("This ID does not exist!", { status: 404, headers: { ...Headers.redirects, "Access-Control-Allow-Headers": "Authorization" } });
