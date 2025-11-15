@@ -30,7 +30,7 @@ const server = Bun.serve({
                 return Response.json(Database.getAllRedirects(), { headers: Headers.redirects });
             },
             POST: async (req) => {
-                const url = (await req.formData()).get("link").trim();
+                let url = (await req.formData()).get("link").trim();
 
                 // Decode the URL if needed
                 if (url) {
